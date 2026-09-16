@@ -271,7 +271,10 @@ void Kripke::Generate::generateSpace(Kripke::Core::DataStore &data_store,
 
 
   // Populate mixture fields with our dynamic data
-  RAJA::ReduceSum<RAJA::seq_reduce, double> total_volume_red[3];
+  using volreducer = RAJA::ReduceSum<RAJA::seq_reduce, double>;
+  volreducer total_volume_red[3]{
+    volreducer{0.0}, volreducer{0.0}, volreducer{0.0}
+  };
   for(size_t i = 0;i < sdom_list.size();++ i){
     SdomId sdom_id = sdom_list[i];
 
