@@ -1,127 +1,101 @@
 ###############################################################################
-# Copyright (c) 2016-20, Lawrence Livermore National Security, LLC and Umpire
+# Copyright (c) 2016-26, Lawrence Livermore National Security, LLC and Kripke
 # project contributors. See the COPYRIGHT file for details.
 #
-# SPDX-License-Identifier: (MIT)
+# SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-###############################################################################
-# General GitLab pipelines configurations for supercomputers and Linux clusters
-# at Lawrence Livermore National Laboratory (LLNL).
-#
-# This entire pipeline is LLNL-specific
-# #############################################################################
-
-# We define the following GitLab pipeline variables:
-#
-# GIT_SUBMODULE_STRATEGY:
-# Tells Gitlab to recursively update the submodules when cloning umpire
-#
-# ALLOC_NAME:
-# On LLNL's quartz, this pipeline creates only one allocation shared among jobs
-# in order to save time and resources. This allocation has to be uniquely named
-# so that we are sure to retrieve it.
-#
-# BUILD_ROOT:
-# The path to the shared resources between all jobs. The BUILD_ROOT is unique to
-# the pipeline, preventing any form of concurrency with other pipelines. This
-# also means that the BUILD_ROOT directory will never be cleaned.
-# TODO: add a clean-up mechanism
+# General GitLab pipeline configuration for LLNL systems. This file consumes
+# GitLab CI Components from radiuss-shared-ci (GitLab 17.0 or newer).
 
 variables:
+  # Kripke builds require their bundled dependencies and the shared job lists.
   GIT_SUBMODULE_STRATEGY: recursive
-  ALLOC_NAME: ${CI_PROJECT_NAME}_ci_${CI_PIPELINE_ID}
-  BUILD_ROOT: ${CI_PROJECT_DIR}
-  PYTHON_ENVIRONMENT_PATH: ${CI_PROJECT_DIR}/.venv
 
-# Normally, stages are blocking in Gitlab. However, using the keyword "needs" we
-# can express dependencies between job that break the ordering of stages, in
-# favor of a DAG.
-# In practice q_*, l_* and b_* stages are independently run and start immediately.
+  # Required information for GitHub status reporting.
+  GITHUB_PROJECT_NAME: "Kripke"
+  GITHUB_PROJECT_ORG: "LLNL"
 
+  # Keep expansion deferred so machine jobs can override command variables.
+  JOB_CMD:
+    value: "./scripts/gitlab/build_and_test.sh"
+    expand: false
+
+# Components intentionally do not declare stages, allowing project-level
+# customization. Both stages below are required by the selected components.
 stages:
-  - environment
-  - q_allocate_resources
-  - q_build_and_test
-  - q_release_resources
-  - l_build_and_test
-  - c_build_and_test
-  - multi_project
+  - prerequisites
+  - build-and-test
 
-configure_python:
-  variables:
-    GIT_STRATEGY: none
-  tags:
-    - shell
-    - quartz
-  stage: environment
-  script:
-    - virtualenv -p /usr/tce/packages/python/python-3.8.2/bin/python3 ${PYTHON_ENVIRONMENT_PATH}
-    - . ${PYTHON_ENVIRONMENT_PATH}/bin/activate
-    - pip install lxml
-  cache:
-    key: venv
-    paths:
-      - ${PYTHON_ENVIRONMENT_PATH}
-
-.venv:
-  cache:
-    key: venv
-    paths:
-      - ${PYTHON_ENVIRONMENT_PATH}
-    policy: pull
-
-# This is the rules that drives the activation of "advanced" jobs. All advanced
-# jobs will share this through a template mechanism.
-.advanced_pipeline:
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "develop" || $ALL_TARGETS == "ON"' #run only if ...
-
-# These are also templates (.name) that define project specific build commands.
-# If an allocation exist with the name defined in this pipeline, the job will
-# use it (slurm specific).
-.build_toss_3_x86_64_ib_script:
-  script:
-    - echo ${ALLOC_NAME}
-    - export JOBID=$(squeue -h --name=${ALLOC_NAME} --format=%A)
-    - echo ${JOBID}
-    - srun $( [[ -n "${JOBID}" ]] && echo "--jobid=${JOBID}" ) -t 15 -N 1 scripts/gitlab/build_and_test.sh
-  artifacts:
-    reports:
-      junit: junit.xml
-
-.build_toss_3_x86_64_ib_corona_script:
-  script:
-    - srun -p mi60 -t 15 -N 1 scripts/gitlab/build_and_test.sh
-
-# Lassen and Butte use a different job scheduler (spectrum lsf) that does not
-# allow pre-allocation the same way slurm does.
-.build_blueos_3_ppc64le_ib_script:
-  script:
-    - lalloc 1 -W 15 scripts/gitlab/build_and_test.sh
-
-.build_blueos_3_ppc64le_ib_p9_script:
-  extends: .build_blueos_3_ppc64le_ib_script
-
-# If testing develop branch, trigger CHAI pipeline with this version of Umpire.
-# TODO: Once spack allows to clone a specific commit on demand, then point to the exact commit.
-#       This will prevent from sticking to a branch (here develop).
-trigger-chai:
-  stage: multi_project
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "develop" || $MULTI_PROJECT == "ON"' #run only if ...
-  variables:
-    UPDATE_UMPIRE: develop
-  trigger:
-    project: radiuss/chai
-    branch: develop
-    strategy: depend
-
-# This is where jobs are included.
 include:
-  - local: .gitlab/quartz-templates.yml
-  - local: .gitlab/quartz-jobs.yml
-  - local: .gitlab/lassen-templates.yml
-  - local: .gitlab/lassen-jobs.yml
-    #   - local: .gitlab/corona-templates.yml
-    #   - local: .gitlab/corona-jobs.yml
+  # Provides machine checks and templates for child-pipeline triggers.
+  - component: $CI_SERVER_FQDN/radiuss/radiuss-shared-ci/base-pipeline@2026.6.0
+    inputs:
+      github_project_name: $GITHUB_PROJECT_NAME
+      github_project_org: $GITHUB_PROJECT_ORG
+      github_token: $RSCI_GITHUB_STATUS_TOKEN
+
+  # Project allocations and variants used by the child-pipeline components.
+  - local: '.gitlab/custom-variables.yml'
+
+# The common RADIUSS job definitions are assembled with the project-specific
+# additions below. This mirrors the job-list pattern used by Umpire.
+generate-job-lists:
+  stage: prerequisites
+  tags: [shell, oslic]
+  variables:
+    RADIUSS_JOBS_PATH: "scripts/radiuss-spack-configs/gitlab/radiuss-jobs"
+    LOCAL_JOBS_PATH: ".gitlab/jobs"
+  script:
+    - cat ${RADIUSS_JOBS_PATH}/dane.yml ${LOCAL_JOBS_PATH}/dane.yml > dane-jobs.yml
+    - cat ${RADIUSS_JOBS_PATH}/matrix.yml ${LOCAL_JOBS_PATH}/matrix.yml > matrix-jobs.yml
+  artifacts:
+    paths:
+      - dane-jobs.yml
+      - matrix-jobs.yml
+
+# DANE
+dane-up-check:
+  extends: [.dane, .machine-check]
+  variables:
+    ASSOCIATED_CHILD_PIPELINE: "dane-build-and-test"
+
+dane-build-and-test:
+  extends: [.dane, .build-and-test]
+  needs: [dane-up-check, generate-job-lists]
+  trigger:
+    include:
+      - component: $CI_SERVER_FQDN/radiuss/radiuss-shared-ci/dane-pipeline@2026.6.0
+        inputs:
+          job_cmd: $JOB_CMD
+          shared_alloc: $DANE_SHARED_ALLOC
+          job_alloc: $DANE_JOB_ALLOC
+          github_project_name: $GITHUB_PROJECT_NAME
+          github_project_org: $GITHUB_PROJECT_ORG
+          alloc_name: $ALLOC_NAME
+      - local: '.gitlab/custom-jobs.yml'
+      - artifact: 'dane-jobs.yml'
+        job: 'generate-job-lists'
+
+# MATRIX
+matrix-up-check:
+  extends: [.matrix, .machine-check]
+  variables:
+    ASSOCIATED_CHILD_PIPELINE: "matrix-build-and-test"
+
+matrix-build-and-test:
+  extends: [.matrix, .build-and-test]
+  needs: [matrix-up-check, generate-job-lists]
+  trigger:
+    include:
+      - component: $CI_SERVER_FQDN/radiuss/radiuss-shared-ci/matrix-pipeline@2026.6.0
+        inputs:
+          job_cmd: $JOB_CMD
+          shared_alloc: $MATRIX_SHARED_ALLOC
+          job_alloc: $MATRIX_JOB_ALLOC
+          github_project_name: $GITHUB_PROJECT_NAME
+          github_project_org: $GITHUB_PROJECT_ORG
+          alloc_name: $ALLOC_NAME
+      - local: '.gitlab/custom-jobs.yml'
+      - artifact: 'matrix-jobs.yml'
+        job: 'generate-job-lists'

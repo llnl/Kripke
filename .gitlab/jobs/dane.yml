@@ -1,0 +1,8 @@
+###############################################################################
+# Copyright (c) 2016-26, Lawrence Livermore National Security, LLC and Kripke
+# project contributors. See the COPYRIGHT file for details.
+#
+# SPDX-License-Identifier: (BSD-3-Clause)
+###############################################################################
+
+# Kripke currently uses the shared Dane job set without local overrides.

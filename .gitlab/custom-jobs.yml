@@ -1,0 +1,14 @@
+###############################################################################
+# Copyright (c) 2016-26, Lawrence Livermore National Security, LLC and Kripke
+# project contributors. See the COPYRIGHT file for details.
+#
+# SPDX-License-Identifier: (BSD-3-Clause)
+###############################################################################
+
+# This file is included by each child pipeline. Define Kripke-wide job
+# templates here when customization beyond the shared RADIUSS jobs is needed.
+.custom_job:
+  artifacts:
+    when: always
+    paths:
+      - "hc-*.cmake"
