@@ -1,0 +1,10 @@
+{
+  "package_name": "kripke",
+  "package_version": "develop",
+  "package_final_phase": "initconfig",
+  "package_source_dir": "../..",
+  "spack_url": "https://github.com/spack/spack.git",
+  "spack_branch": "v1.1.1",
+  "spack_configs_path": "scripts/radiuss-spack-configs",
+  "spack_setup_clingo": false
+}

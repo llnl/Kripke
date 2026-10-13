@@ -43,7 +43,9 @@ then
         prefix_opt="--prefix=${prefix}"
     fi
 
-    ${project_dir}/scripts/uberenv/uberenv.py --spec="${spec}"
+    uberenv_cmd="${project_dir}/scripts/uberenv/uberenv.py"
+    ${uberenv_cmd} --setup-and-env-only --spec="${spec}" ${prefix_opt}
+    ${uberenv_cmd} --skip-setup-and-env --spec="${spec}" ${prefix_opt}
 
 fi
 
