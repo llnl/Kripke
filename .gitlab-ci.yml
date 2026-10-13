@@ -6,7 +6,7 @@
 ###############################################################################
 
 # General GitLab pipeline configuration for LLNL systems. This file consumes
-# GitLab CI Components from radiuss-shared-ci (GitLab 17.0 or newer).
+# GitLab CI Components from llnl/radiuss-shared-ci (GitLab 17.0 or newer).
 
 variables:
   # Kripke builds require their bundled dependencies and the shared job lists.
