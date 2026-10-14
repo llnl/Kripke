@@ -43,6 +43,14 @@ then
         prefix_opt="--prefix=${prefix}"
     fi
 
+    # Keep CI independent of user-level Spack configuration and cache state.
+    # In particular, a runner's ~/.spack configuration must not affect the
+    # generated environment.
+    spack_user_cache="${prefix:-${project_dir}/../spack-and-build-root}/spack-user-cache"
+    export SPACK_DISABLE_LOCAL_CONFIG=""
+    export SPACK_USER_CACHE_PATH="${spack_user_cache}"
+    mkdir -p ${spack_user_cache}
+
     uberenv_cmd="${project_dir}/scripts/uberenv/uberenv.py"
     ${uberenv_cmd} --setup-and-env-only --spec="${spec}" ${prefix_opt}
     ${uberenv_cmd} --skip-setup-and-env --spec="${spec}" ${prefix_opt}
