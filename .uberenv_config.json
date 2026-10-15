@@ -1,11 +1,13 @@
 {
   "package_name": "kripke",
   "package_version": "develop",
-  "package_final_phase": "hostconfig",
+  "package_final_phase": "initconfig",
   "package_source_dir": "../..",
   "spack_url": "https://github.com/spack/spack.git",
   "spack_branch": "v1.1.1",
   "spack_configs_path": "scripts/radiuss-spack-configs",
-  "spack_packages_path": "scripts/spack/packages",
+  "spack_packages_url": "https://github.com/adrienbernede/spack-packages.git",
+  "spack_packages_commit": "a721965a515311dbee8d911cecb06837b8593d17",
+  "spack_allow_compiler_mixing": true,
   "spack_setup_clingo": false
 }

@@ -11,4 +11,4 @@
   artifacts:
     when: always
     paths:
-      - "hc-*.cmake"
+      - "*.cmake"
