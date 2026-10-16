@@ -33,8 +33,8 @@ if (ENABLE_CHAI)
   set(CHAI_ENABLE_RAJA_PLUGIN On CACHE BOOL "")
 endif ()
 
-# Use C++17 standard
-set(BLT_CXX_STD "c++17" CACHE STRING "")
+# Use C++20 standard
+set(BLT_CXX_STD "c++20" CACHE STRING "")
 
 if (NOT BLT_LOADED)
   if (DEFINED BLT_SOURCE_DIR)
@@ -50,7 +50,7 @@ if (NOT BLT_LOADED)
     endif ()
  endif ()
 
-  set(BLT_CXX_STD "c++17" CACHE STRING "BLT requires C++17")
+  set(BLT_CXX_STD "c++20" CACHE STRING "Kripke requires C++20")
   set(ENABLE_ALL_WARNINGS OFF CACHE BOOL "")
   set(ENABLE_ASTYLE OFF CACHE BOOL "")
   set(ENABLE_CLANGFORMAT OFF CACHE BOOL "")
@@ -340,7 +340,11 @@ if (ENABLE_CALIPER)
 
   if(NOT caliper_FOUND)
     set(BUILD_SHARED_LIBS False CACHE BOOL "")
-    set(WITH_MPI TRUE CACHE BOOL "")
+    if(ENABLE_MPI OR ENABLE_MPI_WRAPPER)
+      set(WITH_MPI TRUE CACHE BOOL "")
+    else()
+      set(WITH_MPI FALSE CACHE BOOL "")
+    endif()
     set(WITH_ADIAK TRUE CACHE BOOL "")
     if(ENABLE_CUDA)
       set(WITH_NVTX TRUE CACHE BOOL "")
