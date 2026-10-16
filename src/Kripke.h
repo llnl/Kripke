@@ -31,6 +31,17 @@
 #include <mpi.h>
 #endif
 
+#if defined(KRIPKE_USE_UMPIRE)
+#include <umpire/Umpire.hpp>
+#include <umpire/strategy/QuickPool.hpp>
+#ifdef KRIPKE_USE_DIRECT_UMPIRE_PLANE_STORAGE
+#include <umpire/strategy/NamedAllocationStrategy.hpp>
+#endif
+#if defined(KRIPKE_USE_CHAI)
+#include <chai/ManagedArray.hpp>
+#endif
+#endif
+
 // Forward Decl
 struct Grid_Data;
 
@@ -67,6 +78,19 @@ namespace Kripke {
    * Index used to specify a global subdomain
    */
   RAJA_INDEX_VALUE(GlobalSdomId, "GlobalSdomId");
+
+#if defined(KRIPKE_USE_UMPIRE)
+#if defined(KRIPKE_USE_CHAI)
+  using ExecutionSpace = chai::ExecutionSpace;
+  using chai::CPU;
+  using chai::GPU;
+#else
+  enum ExecutionSpace {
+    CPU,
+    GPU
+  };
+#endif
+#endif
 
 
 }
@@ -160,4 +184,3 @@ namespace Arch {
 
 
 #endif
-

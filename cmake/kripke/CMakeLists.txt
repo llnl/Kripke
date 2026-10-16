@@ -179,21 +179,88 @@ if(ENABLE_CHAI)
 
   set(ENABLE_TESTS Off CACHE BOOL "")
   set(KRIPKE_USE_CHAI 1)
+  set(KRIPKE_USE_UMPIRE 1)
   list(APPEND KRIPKE_DEPENDS chai)
 else ()
-  #
-  # Configure RAJA (REQUIRED)
-  #
-  set(ENABLE_RAJA_PLUGIN Off CACHE BOOL "")
-  if (DEFINED RAJA_DIR)
-    find_package(RAJA REQUIRED)
+  if (ENABLE_CUDA OR ENABLE_HIP) 
+    set(ENABLE_RAJA_PLUGIN Off CACHE BOOL "")
+    # Find camp
+    if (NOT TARGET camp)
+      find_package(camp QUIET NO_DEFAULT_PATH HINTS ${CAMP_DIR} ${camp_DIR})
+
+      if (camp_FOUND)
+        message(STATUS "Kripke: Using external CAMP")
+        set_target_properties(camp PROPERTIES IMPORTED_GLOBAL TRUE)
+        if (DEFINED RAJA_DIR)
+          find_package(RAJA REQUIRED)
+        endif()
+
+        list(APPEND KRIPKE_DEPENDS RAJA)
+      else ()
+        message(STATUS "Kripke: Using CAMP submodule")
+
+        if (NOT EXISTS ${KRIPKE_SOURCE_DIR}/tpl/raja/tpl/camp/CMakeLists.txt)
+          message(FATAL_ERROR "Kripke: CAMP submodule not initialized. Run 'git submodule update --init' in the git repository or set camp_DIR or CAMP_DIR to use an external build of CAMP.")
+        else ()
+          message(STATUS "Kripke: Using CAMP in Kripke TPL")
+          add_subdirectory(${KRIPKE_SOURCE_DIR}/tpl/raja/tpl/camp
+                           ${PROJECT_BINARY_DIR}/camp)
+        endif ()
+      endif()
+    endif()
+
+    # Set camp backends
+    if (ENABLE_CUDA)
+      message(STATUS "Kripke: Setting CAMP_HAVE_CUDA")
+      blt_add_target_definitions(TO camp
+                                 SCOPE INTERFACE
+                                 TARGET_DEFINITIONS CAMP_HAVE_CUDA)
+    endif ()
+
+    if (ENABLE_HIP)
+      message(STATUS "Kripke: Setting CAMP_HAVE_HIP")
+      blt_add_target_definitions(TO camp
+                                 SCOPE INTERFACE
+                                 TARGET_DEFINITIONS CAMP_HAVE_HIP)
+    endif ()
+
+    set(UMPIRE_DEPENDS camp)
+
+    if (DEFINED umpire_DIR)
+      find_package(umpire REQUIRED)
+      
+      if (ENABLE_MPI)
+        list(APPEND UMPIRE_DEPENDS blt::mpi)
+      endif()
+
+      blt_register_library(
+        NAME umpire
+        INCLUDES ${UMPIRE_INCLUDE_DIRS}
+        LIBRARIES umpire
+        DEPENDS_ON ${UMPIRE_DEPENDS})
+    else ()
+      add_subdirectory(${KRIPKE_SOURCE_DIR}/tpl/umpire
+                       ${PROJECT_BINARY_DIR}/umpire)
+    endif()
+
+    set(ENABLE_TESTS Off CACHE BOOL "")
+    set(KRIPKE_USE_UMPIRE 1)
+    list(APPEND KRIPKE_DEPENDS umpire)
   else ()
-    set(ENABLE_EXAMPLES Off CACHE BOOL "")
-    set(RAJA_ENABLE_EXERCISES Off CACHE BOOL "")
-    add_subdirectory(${KRIPKE_SOURCE_DIR}/tpl/raja
-                     ${PROJECT_BINARY_DIR}/raja)
+    #
+    # Configure RAJA (REQUIRED)
+    #
+    set(ENABLE_RAJA_PLUGIN Off CACHE BOOL "")
+    if (DEFINED RAJA_DIR)
+      find_package(RAJA REQUIRED)
+    else ()
+      set(ENABLE_EXAMPLES Off CACHE BOOL "")
+      set(ENABLE_EXERCISES Off CACHE BOOL "")
+      add_subdirectory(${KRIPKE_SOURCE_DIR}/tpl/raja
+                       ${PROJECT_BINARY_DIR}/raja)
+    endif ()
+    list(APPEND KRIPKE_DEPENDS RAJA)
   endif ()
-  list(APPEND KRIPKE_DEPENDS RAJA)
 endif ()
 
 #
@@ -322,9 +389,6 @@ if(ENABLE_GPU_AWARE_MPI)
   if(NOT (ENABLE_MPI OR ENABLE_MPI_WRAPPER))
     message(FATAL_ERROR "ENABLE_GPU_AWARE_MPI requires MPI. Enable either ENABLE_MPI=On or ENABLE_MPI_WRAPPER=On.")
   endif()
-  if(NOT ENABLE_CHAI)
-    message(FATAL_ERROR "ENABLE_GPU_AWARE_MPI requires ENABLE_CHAI=On.")
-  endif()
   if(NOT ENABLE_CUDA AND NOT ENABLE_HIP)
     message(FATAL_ERROR "ENABLE_GPU_AWARE_MPI requires ENABLE_CUDA=On or ENABLE_HIP=On.")
   endif()
@@ -334,9 +398,6 @@ endif()
 if(ENABLE_DIRECT_UMPIRE_PLANE_STORAGE)
   if(NOT ENABLE_GPU_AWARE_MPI)
     message(FATAL_ERROR "ENABLE_DIRECT_UMPIRE_PLANE_STORAGE requires ENABLE_GPU_AWARE_MPI=On.")
-  endif()
-  if(NOT ENABLE_CHAI)
-    message(FATAL_ERROR "ENABLE_DIRECT_UMPIRE_PLANE_STORAGE requires ENABLE_CHAI=On.")
   endif()
   if(NOT ENABLE_CUDA AND NOT ENABLE_HIP)
     message(FATAL_ERROR "ENABLE_DIRECT_UMPIRE_PLANE_STORAGE requires ENABLE_CUDA=On or ENABLE_HIP=On.")

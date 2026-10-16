@@ -409,10 +409,16 @@ int main(int argc, char **argv) {
     printf("  Compiler Flags:         \"%s\"\n", KRIPKE_CXX_FLAGS);
     printf("  Linker Flags:           \"%s\"\n", KRIPKE_LINK_FLAGS);
 
-#ifdef KRIPKE_USE_CHAI
+#if defined(KRIPKE_USE_CHAI)
     printf("  CHAI Enabled:           Yes\n");
+    printf("  Umpire Enabled:         Yes\n");
 #else
     printf("  CHAI Enabled:           No\n");
+#if defined(KRIPKE_USE_UMPIRE)
+    printf("  Umpire Enabled:         Yes\n");
+#else
+    printf("  Umpire Enabled:         No\n");
+#endif
 #endif
 
 #ifdef KRIPKE_USE_CUDA
@@ -697,7 +703,7 @@ int main(int argc, char **argv) {
   Kripke::Core::DataStore data_store;
   Kripke::generateProblem(data_store, vars);
 
-#ifdef KRIPKE_USE_CHAI
+#if defined(KRIPKE_USE_UMPIRE) && (defined(KRIPKE_USE_CUDA) || defined(KRIPKE_USE_HIP))
   if(myid == 0){
     printf("\n");
     printf("Umpire Memory Pool Before Run\n");
@@ -747,7 +753,7 @@ int main(int argc, char **argv) {
     printf("  Sweep efficiency :  %4.5lf [100.0 * SweepSubdomain time / SweepSolver time]\n", sweep_eff);
     printf("  Number of unknowns: %lu\n", (unsigned long) num_unknowns);
 
-#ifdef KRIPKE_USE_CHAI
+#if defined(KRIPKE_USE_UMPIRE) && (defined(KRIPKE_USE_CUDA) || defined(KRIPKE_USE_HIP))
     double device_memory_pool_size = memory_manager.getDeviceMemoryPoolSize();
     double device_memory_high_watermark = memory_manager.getDeviceMemoryHighWatermark();
 #ifdef KRIPKE_USE_CALIPER

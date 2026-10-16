@@ -141,10 +141,10 @@ namespace Kripke {
     return SdomAL<AL>{sdom_id};
   }
 
-#ifdef KRIPKE_USE_CHAI
+#if defined(KRIPKE_USE_UMPIRE)
   template<typename FieldType>
   RAJA_INLINE
-  chai::ExecutionSpace fieldAllocationSpace(ArchV arch_v)
+  Kripke::ExecutionSpace fieldAllocationSpace(ArchV arch_v)
   {
     bool use_device = false;
 #if defined(KRIPKE_USE_CUDA)
@@ -154,10 +154,10 @@ namespace Kripke {
     use_device = use_device || arch_v == ArchV_HIP;
 #endif
 
-    if(use_device && !FieldType::host_resident_normal_chai_gpu){
-      return chai::GPU;
+    if(use_device && !FieldType::host_resident_normal_gpu){
+      return Kripke::GPU;
     }
-    return chai::CPU;
+    return Kripke::CPU;
   }
 #endif
 
@@ -170,9 +170,7 @@ namespace Kripke {
     dispatchLayout(al_v.layout_v, [&](auto layout_t){
       using order_t = typename DefaultOrder<decltype(layout_t)>::type; 
 
-#ifndef KRIPKE_USE_CHAI
-      field = new FieldType(set, order_t{});
-#else
+#if defined(KRIPKE_USE_UMPIRE)
 #ifdef KRIPKE_USE_DIRECT_UMPIRE_PLANE_STORAGE
       field = new FieldType(set,
           fieldAllocationSpace<FieldType>(al_v.arch_v),
@@ -181,6 +179,8 @@ namespace Kripke {
 #else
       field = new FieldType(set, fieldAllocationSpace<FieldType>(al_v.arch_v), order_t{});
 #endif
+#else
+      field = new FieldType(set, order_t{});
 #endif
       data_store.addVariable(name, field);
     });
