@@ -182,8 +182,8 @@ if(ENABLE_CHAI)
   set(KRIPKE_USE_UMPIRE 1)
   list(APPEND KRIPKE_DEPENDS chai)
 else ()
-  if (ENABLE_CUDA OR ENABLE_HIP) 
-    set(ENABLE_RAJA_PLUGIN Off CACHE BOOL "")
+  set(ENABLE_RAJA_PLUGIN Off CACHE BOOL "")
+  if (ENABLE_CUDA OR ENABLE_HIP)
     # Find camp
     if (NOT TARGET camp)
       find_package(camp QUIET NO_DEFAULT_PATH HINTS ${CAMP_DIR} ${camp_DIR})
@@ -191,11 +191,6 @@ else ()
       if (camp_FOUND)
         message(STATUS "Kripke: Using external CAMP")
         set_target_properties(camp PROPERTIES IMPORTED_GLOBAL TRUE)
-        if (DEFINED RAJA_DIR)
-          find_package(RAJA REQUIRED)
-        endif()
-
-        list(APPEND KRIPKE_DEPENDS RAJA)
       else ()
         message(STATUS "Kripke: Using CAMP submodule")
 
@@ -223,7 +218,26 @@ else ()
                                  SCOPE INTERFACE
                                  TARGET_DEFINITIONS CAMP_HAVE_HIP)
     endif ()
+  endif ()
 
+  # Configure RAJA for every no-CHAI build, independently of CAMP discovery.
+  # Do this before Umpire so both dependencies share the existing CAMP target.
+  if (NOT TARGET RAJA)
+    if (DEFINED RAJA_DIR)
+      find_package(RAJA REQUIRED)
+    else ()
+      set(ENABLE_EXAMPLES Off CACHE BOOL "")
+      set(ENABLE_EXERCISES Off CACHE BOOL "")
+      add_subdirectory(${KRIPKE_SOURCE_DIR}/tpl/raja
+                       ${PROJECT_BINARY_DIR}/raja)
+    endif ()
+  endif ()
+  if (NOT TARGET RAJA)
+    message(FATAL_ERROR "Kripke: RAJA is required, but no RAJA target was provided.")
+  endif ()
+  list(APPEND KRIPKE_DEPENDS RAJA)
+
+  if (ENABLE_CUDA OR ENABLE_HIP)
     set(UMPIRE_DEPENDS camp)
 
     if (DEFINED umpire_DIR)
@@ -246,20 +260,6 @@ else ()
     set(ENABLE_TESTS Off CACHE BOOL "")
     set(KRIPKE_USE_UMPIRE 1)
     list(APPEND KRIPKE_DEPENDS umpire)
-  else ()
-    #
-    # Configure RAJA (REQUIRED)
-    #
-    set(ENABLE_RAJA_PLUGIN Off CACHE BOOL "")
-    if (DEFINED RAJA_DIR)
-      find_package(RAJA REQUIRED)
-    else ()
-      set(ENABLE_EXAMPLES Off CACHE BOOL "")
-      set(ENABLE_EXERCISES Off CACHE BOOL "")
-      add_subdirectory(${KRIPKE_SOURCE_DIR}/tpl/raja
-                       ${PROJECT_BINARY_DIR}/raja)
-    endif ()
-    list(APPEND KRIPKE_DEPENDS RAJA)
   endif ()
 endif ()
 
