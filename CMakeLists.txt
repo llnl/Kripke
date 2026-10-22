@@ -69,8 +69,8 @@ set(ENABLE_TBB Off CACHE BOOL "")
 set(ENABLE_EXAMPLES Off CACHE BOOL "")
 set(ENABLE_DOCUMENTATION Off CACHE BOOL "")
 
-# Use C++17 standard
-set(BLT_CXX_STD "c++17" CACHE STRING "")
+# Use C++20 standard
+set(BLT_CXX_STD "c++20" CACHE STRING "")
 
 if (NOT BLT_LOADED)
   if (DEFINED BLT_SOURCE_DIR)
@@ -86,7 +86,7 @@ if (NOT BLT_LOADED)
     endif ()
  endif ()
 
-  set(BLT_CXX_STD "c++17" CACHE STRING "BLT requires C++17")
+  set(BLT_CXX_STD "c++20" CACHE STRING "Kripke requires C++20")
   set(ENABLE_ALL_WARNINGS OFF CACHE BOOL "")
   set(ENABLE_ASTYLE OFF CACHE BOOL "")
   set(ENABLE_CLANGFORMAT OFF CACHE BOOL "")

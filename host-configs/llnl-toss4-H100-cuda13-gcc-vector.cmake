@@ -5,12 +5,13 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 #
 
-# module load gcc/12.1.1-magic
+# module load gcc/13.3.1-magic
+# module load cmake/3.25.2
 
 set(RAJA_COMPILER "RAJA_COMPILER_CLANG" CACHE STRING "")
 
-set(CMAKE_C_COMPILER   "/usr/tce/packages/mvapich2/mvapich2-2.3.7-gcc-12.1.1-magic/bin/mpigcc" CACHE PATH "")
-set(CMAKE_CXX_COMPILER "/usr/tce/packages/mvapich2/mvapich2-2.3.7-gcc-12.1.1-magic/bin/mpig++" CACHE PATH "")
+set(CMAKE_C_COMPILER   "/usr/tce/packages/mvapich2/mvapich2-2.3.7-gcc-13.3.1-magic/bin/mpigcc" CACHE PATH "")
+set(CMAKE_CXX_COMPILER "/usr/tce/packages/mvapich2/mvapich2-2.3.7-gcc-13.3.1-magic/bin/mpig++" CACHE PATH "")
 
 set(CMAKE_CXX_FLAGS "" CACHE STRING "")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math" CACHE STRING "")
@@ -29,4 +30,5 @@ set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -lineinfo --expt-extended-lambda --expt
 set(CMAKE_CUDA_FLAGS_DEBUG "-O0 -g -G --expt-extended-lambda --expt-relaxed-constexpr" CACHE STRING "")
 set(CMAKE_CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}" CACHE STRING "")
 
+set(CUB_DIR "/usr/tce/packages/cuda/cuda-13.1.1/include/cccl" CACHE PATH "")
 

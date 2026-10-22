@@ -75,9 +75,9 @@ Requirements
 
 Basic requirements:
 
-*  CMake 3.20 or later for CUDA, and 3.23 or later for HIP support (minimum respective versions required by RAJA)
+*  CMake 3.25 or later for CUDA, and 3.23 or later for HIP support (minimum respective versions required by RAJA)
 
-*  C++14 Compiler (g++, icpc, etc.)
+*  C++20 Compiler (g++, icpc, etc.)
 
 *  (Optional) MPI 1.0 or later
 
@@ -88,13 +88,13 @@ Basic requirements:
 
 Submodule dependencies:
 
-*  [BLT](https://github.com/LLNL/blt) v0.7.0: a CMake based build system (required)
+*  [BLT](https://github.com/LLNL/blt) v0.7.2: a CMake based build system (required)
 
-*  [RAJA](https://github.com/LLNL/RAJA) v2025.03.2: a loop abstraction library (required)
+*  [RAJA](https://github.com/LLNL/RAJA) v2026.07.0: a loop abstraction library (required)
 
-*  [CHAI](https://github.com/LLNL/CHAI) v2025.03.1: a copy hiding abstraction for moving data between memory spaces (optional)
+*  [CHAI](https://github.com/LLNL/CHAI) v2026.07.0: a copy hiding abstraction for moving data between memory spaces (optional)
 
-*  [Umpire](https://github.com/LLNL/Umpire) v2025.03.0: a memory management abstraction (required if using CHAI)
+*  [Umpire](https://github.com/LLNL/Umpire) v2026.07.1: a memory management abstraction (required if using CHAI)
 
 *  [Cub](https://github.com/NVlabs/cub.git): algorithm primitives library for CUDA (required by RAJA if using CUDA)
 
@@ -179,12 +179,10 @@ If Kripke is built with OpenMP support, then the environment variable ``OMP_NUM_
 
 If Kripke is built with Caliper support, Caliper performance measurements can be configured through Caliper environment variables. For example,
 
-    CALI_CONFIG_PROFILE=runtime-report ./kripke ...
+    CALI_CONFIG=runtime-report ./kripke ...
 
-will print a time profile of annotated code regions in Kripke. For more information, see https://llln.github.io/Caliper.
+will print a time profile of annotated code regions in Kripke. For more information, see https://software.llnl.gov/Caliper.
 
-
-If building Kripke on RZVernal, then the rocm and cmake/3.24.2 modules need to be loaded.
 
 Command Line Options
 --------------------
