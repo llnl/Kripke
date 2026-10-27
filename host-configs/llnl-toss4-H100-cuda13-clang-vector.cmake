@@ -30,5 +30,3 @@ set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -lineinfo --expt-extended-lambda --expt
 set(CMAKE_CUDA_FLAGS_DEBUG "-O0 -g -G --expt-extended-lambda --expt-relaxed-constexpr -Xcompiler=--gcc-toolchain=/usr/tce/packages/gcc/gcc-10.3.1" CACHE STRING "")
 set(CMAKE_CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}" CACHE STRING "")
 
-set(CUB_DIR "/usr/tce/packages/cuda/cuda-13.1.1/include/cccl" CACHE PATH "")
-
