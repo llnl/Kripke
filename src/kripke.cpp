@@ -174,7 +174,12 @@ namespace {
     return ss.str();
   }
 
-  constexpr size_t quickPoolAlignmentBytes = 16;
+#if defined(KRIPKE_USE_UMPIRE)
+  constexpr size_t quickPoolAlignmentBytes = umpire::strategy::QuickPool::s_default_alignment;
+#else
+  // Device pool sizing is unused without Umpire; no alignment is needed.
+  constexpr size_t quickPoolAlignmentBytes = 1;
+#endif
   constexpr size_t bytesPerGiB = 1024ull * 1024ull * 1024ull;
 
   size_t alignQuickPoolRequest(size_t bytes){

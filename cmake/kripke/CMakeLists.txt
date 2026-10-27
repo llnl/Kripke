@@ -83,6 +83,12 @@ set(KRIPKE_LAYOUT DGZ)
 # Add CMake CUDA language support
 #
 if(ENABLE_CUDA)
+  # CUDA 13 and newer place CUB headers under include/cccl.
+  if(CUDA_VERSION_STRING VERSION_GREATER_EQUAL "13.0" AND NOT DEFINED CUB_DIR)
+    set(CUB_DIR "${CUDA_TOOLKIT_ROOT_DIR}/include/cccl" CACHE PATH
+        "Directory containing the CUB headers")
+  endif()
+
   # Native CMake support  
   #enable_language(CUDA)
   

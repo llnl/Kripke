@@ -18,6 +18,7 @@ MemoryManager::MemoryManager(size_t requested_device_pool_size) :
   auto &rm = umpire::ResourceManager::getInstance();
   const char * allocator_name = "KRIPKE_DEVICE_POOL";
   constexpr size_t umpire_alignment = umpire::strategy::QuickPool::s_default_alignment;
+  // Umpire adds this alignment padding back when allocating the backing block.
   size_t umpire_device_pool_size =
     requested_device_pool_size > umpire_alignment
       ? requested_device_pool_size - umpire_alignment

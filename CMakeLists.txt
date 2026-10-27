@@ -72,6 +72,16 @@ set(ENABLE_DOCUMENTATION Off CACHE BOOL "")
 # Use C++20 standard
 set(BLT_CXX_STD "c++20" CACHE STRING "")
 
+# Check the CMake requirement before BLT enables the CUDA language.
+if(ENABLE_CUDA AND CMAKE_VERSION VERSION_LESS "3.25")
+  find_package(CUDA REQUIRED)
+  if(CUDA_VERSION_STRING VERSION_GREATER_EQUAL "13.0")
+    message(FATAL_ERROR
+      "CUDA ${CUDA_VERSION_STRING} with C++20 requires CMake 3.25 or newer "
+      "(found ${CMAKE_VERSION}).")
+  endif()
+endif()
+
 if (NOT BLT_LOADED)
   if (DEFINED BLT_SOURCE_DIR)
     message(${BLT_SOURCE_DIR})
