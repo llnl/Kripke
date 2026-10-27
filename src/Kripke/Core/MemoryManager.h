@@ -19,6 +19,7 @@ class MemoryManager {
     size_t requested_device_pool_size;
 
   public:
+    // The requested pool size is in bytes, including Umpire alignment padding.
     MemoryManager(size_t requested_device_pool_size);
     double getDeviceMemoryPoolSize();
     double getDeviceMemoryHighWatermark();
