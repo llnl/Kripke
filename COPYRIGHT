@@ -31,16 +31,24 @@ packages are covered by various permissive licenses. A summary listing
 follows. See the license included with each package for full details.
 
 
+PackageName: Adiak
+PackageHomePage: https://github.com/LLNL/Adiak/
+PackageLicenseDeclared: MIT
+
 PackageName: BLT
 PackageHomePage: https://github.com/LLNL/blt/
 PackageLicenseDeclared: BSD-3-Clause
 
+PackageName: Caliper
+PackageHomePage: https://github.com/LLNL/Caliper/
+PackageLicenseDeclared: BSD-3-Clause
+
 PackageName: CHAI
-PackageHomePage: http://github.com/LLNL/CHAI/
+PackageHomePage: https://github.com/LLNL/CHAI/
 PackageLicenseDeclared: BSD-3-Clause
 
 PackageName: CUB
-PackageHomePage: http://nvlabs.github.com/cub/
+PackageHomePage: https://nvlabs.github.com/cub/
 PackageLicenseDeclared: BSD-3-Clause
 
 PackageName: RAJA
@@ -48,6 +56,6 @@ PackageHomePage: https://github.com/LLNL/RAJA/
 PackageLicenseDeclared: BSD-3-Clause
 
 PackageName: Umpire
-PackageHomePage: http://github.com/LLNL/Umpire/
+PackageHomePage: https://github.com/LLNL/Umpire/
 PackageLicenseDeclared: MIT
 

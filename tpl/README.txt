@@ -6,7 +6,7 @@ tpl/caliper            Performance analysis toolbox/library
 
 tpl/chai               Copy HIding Api - provides smart arrays that 
                        automate data motion on GPU architectures
-											 (REQUIRED for CUDA)
+											 (REQUIRED)
 
 tpl/googletest         Unit testing framework
                        (REQUIRED)
@@ -16,5 +16,5 @@ tpl/raja               RAJA programming model
 
 tpl/umpire             Memory management abstraction that CHAI 
                        relies on for malloc, free, and move
-											 (REQUIRED for CUDA)
+											 (REQUIRED)
 

@@ -1,4 +1,13 @@
-7/8/2025 v1.2.8: Update RAJA (v2025.03.2), CHAI (v2025.03.1), Umpire (v2025.03.0), and BLT (v0.7.0). Updated host-configs for new platforms/compilers, and CHAI interface changes.
+10/30/2026 v1.2.8: Update RAJA (v2026.07.1), CHAI (v2026.07.1), Umpire (v2026.07.2), BLT (v0.7.2), Caliper (2.15.0), and added Adiak (0.5.0).
+- Added explicit Umpire memory management alongside optional CHAI support, including immediate GPU allocation and initialization, and field copies.
+- Added automatic device-pool sizing based on problem dimensions and decomposition, a --dev_pool_size override, and reporting of pool size and memory high watermark.
+- Added GPU-aware MPI, and optional direct Umpire allocations for communication planes.
+- Added asynchronous CUDA/HIP sweep execution and processing of all ready subdomains during sweep scheduling.
+- Corrected GPU kernel loop ordering, including the LTimes GDZ case, field-copy direction, and host/device synchronization and transfers.
+- Expanded Caliper instrumentation to cover main() and solver iterations. Added Adiak metadata for configuration, problem size, performance, and device-pool usage.
+- Adopted C++20, reorganized CMake into a superbuild (to accomodate Adiak), improved bundled/external profiling-library integration, and added CUDA 13 compatibility.
+- Added H100 CUDA configurations for GCC and Clang, MI300A and Intel 2024 configurations, and updated existing ROCm and compiler configurations.
+- Added Hubcast configuration.
 
 10/31/2023 v1.2.7: Update RAJA (v2023.06.1), CHAI, Umpire (v2023.06.0), and BLT (v0.5.3). Updated use of RAJA GPU threading API. Added host-configs for new platforms/compilers, and scripts to aid release process.
 

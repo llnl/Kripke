@@ -68,16 +68,16 @@ The steady-state solution method uses the source-iteration technique, where each
 Building and Running
 ====================
 
-Kripke comes with a BLT CMake-based build system based.
+Kripke uses a BLT/CMake superbuild to build the application and its dependencies.
 
 Requirements
 ------------
 
 Basic requirements:
 
-*  CMake 3.25 or later for CUDA, and 3.23 or later for HIP support (minimum respective versions required by RAJA)
+*  CMake 3.24 or later for the bundled dependencies. CUDA 13 with C++20 requires CMake 3.25 or later.
 
-*  C++20 Compiler (g++, icpc, etc.)
+*  A compiler with C++20 support.
 
 *  (Optional) MPI 1.0 or later
 
@@ -90,13 +90,17 @@ Submodule dependencies:
 
 *  [BLT](https://github.com/LLNL/blt) v0.7.2: a CMake based build system (required)
 
-*  [RAJA](https://github.com/LLNL/RAJA) v2026.07.0: a loop abstraction library (required)
+*  [RAJA](https://github.com/LLNL/RAJA) v2026.07.1: a loop abstraction library (required)
 
-*  [CHAI](https://github.com/LLNL/CHAI) v2026.07.0: a copy hiding abstraction for moving data between memory spaces (optional)
+*  [CHAI](https://github.com/LLNL/CHAI) v2026.07.1: a copy hiding abstraction for moving data between memory spaces (optional)
 
-*  [Umpire](https://github.com/LLNL/Umpire) v2026.07.1: a memory management abstraction (required if using CHAI)
+*  [Umpire](https://github.com/LLNL/Umpire) v2026.07.2: a memory management library (required for CUDA/HIP builds and whenever CHAI is enabled)
 
-*  [Cub](https://github.com/NVlabs/cub.git): algorithm primitives library for CUDA (required by RAJA if using CUDA)
+*  [Caliper](https://github.com/LLNL/Caliper) v2.15.0: performance instrumentation and analysis (used with `ENABLE_CALIPER=ON`).
+
+*  [Adiak](https://github.com/LLNL/Adiak) v0.5.0: application and performance metadata (used with `ENABLE_CALIPER=ON`).
+
+*  [CUB](https://github.com/NVIDIA/cccl): CUDA algorithm primitives required by RAJA for CUDA builds. CUDA 13 places these headers under the toolkit's `include/cccl` directory; Kripke selects that path automatically unless `CUB_DIR` is provided.
 
 
 Getting Kripke
@@ -106,11 +110,11 @@ Two options are available:
 *  Clone the source from github.
 
 
-The following are the instruction for cloning the tarball, and setting up your clone repository.
+To check out the v1.2.8 release from Git:
 
-Clone the latest released version from github:
+Clone the release tag:
         
-        git clone https://github.com/LLNL/Kripke.git
+        git clone --branch v1.2.8 https://github.com/LLNL/Kripke.git
         
 Clone all of the submodules.  The Kripke build system, BLT, resides in 
 another repository on github so one must initialize and update the "git submodules"
@@ -138,7 +142,7 @@ The easiest way to get Kripke running, is to directly invoke CMake and take what
         For a number of platforms, we have CMake cache files that make things easier:
 
         cd build
-        cmake .. -C ../host-configs/llnl-bgqos-clang.cmake -DCMAKE_BUILD_TYPE=Release
+        cmake .. -C ../host-configs/llnl-toss4-MI300A-rocm6-adams.cmake -DCMAKE_BUILD_TYPE=Release
 
 *  Step 3: Now make Kripke:
          
@@ -148,6 +152,54 @@ The easiest way to get Kripke running, is to directly invoke CMake and take what
    
         ./bin/kripke.exe
   
+
+Build Options
+-------------
+
+Pass these options as `-D<option>=ON` or `-D<option>=OFF` when configuring CMake.
+The defaults below apply to a fresh build; host configurations can override them.
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `ENABLE_MPI` | `OFF` | Enable MPI using CMake's MPI discovery. |
+| `ENABLE_OPENMP` | `OFF` | Enable OpenMP CPU threading. |
+| `ENABLE_CUDA` | `OFF` | Enable the NVIDIA CUDA backend. |
+| `ENABLE_HIP` | `OFF` | Enable the AMD HIP backend. |
+| `ENABLE_CHAI` | `OFF` | Use CHAI managed arrays with Umpire. With this option off, GPU builds use explicit Umpire memory management. |
+| `ENABLE_GPU_AWARE_MPI` | `OFF` | Pass GPU plane buffers directly to MPI. Requires CUDA or HIP, MPI enabled through `ENABLE_MPI` or `ENABLE_MPI_WRAPPER`, and an MPI installation configured to accept device buffers. |
+| `ENABLE_DIRECT_UMPIRE_PLANE_STORAGE` | `OFF` | Allocate I/J/K communication planes directly through Umpire's `NamedAllocationStrategy`, bypassing QuickPool for these fields. Requires `ENABLE_GPU_AWARE_MPI=ON`. |
+| `ENABLE_CALIPER` | `OFF` | Enable Caliper instrumentation and Adiak metadata collection. |
+
+For builds using MPI compiler wrappers, `-DENABLE_MPI_WRAPPER=ON` also enables
+Kripke's MPI code; configure the corresponding C/C++ compiler wrappers.
+
+GPU-aware MPI works with either CHAI or explicit Umpire memory management.
+With GPU-aware MPI disabled, MPI exchanges use host buffers. Direct Umpire plane
+storage is optional and provides base allocation pointers for MPI implementations
+that need them; the default plane allocator is QuickPool.
+
+For example, enable GPU-aware MPI with explicit Umpire memory management on the
+LLNL MI300A system using its host configuration:
+
+```sh
+cmake -S . -B build-hip \
+  -C host-configs/llnl-toss4-MI300A-rocm6-adams.cmake \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DENABLE_CHAI=OFF \
+  -DENABLE_GPU_AWARE_MPI=ON
+cmake --build build-hip --parallel 8
+```
+
+Add `-DENABLE_DIRECT_UMPIRE_PLANE_STORAGE=ON` to that configuration when direct
+plane allocations are needed.
+
+When profiling is enabled, the superbuild uses an installed Adiak or builds the
+bundled version. Set `adiak_DIR` to an existing Adiak CMake package directory to
+select it explicitly. Caliper likewise uses an installed package when found,
+otherwise the bundled version is built; `caliper_DIR` selects an existing package.
+
+Host Configurations
+-------------------
 
 There are a number of cache init files for LLNL machines and operating systems.  
 These might not meet your needs, but can be a very good starting point for developing your own.
@@ -162,6 +214,10 @@ A useful subset of the cache init files (located in the ./host-configs/ director
 *  llnl-blueos-P100-nvcc-clang.cmake
 
 *  llnl-blueos-V100-nvcc-clang.cmake
+
+*  llnl-toss4-H100-cuda13-clang-vector.cmake
+
+*  llnl-toss4-H100-cuda13-gcc-vector.cmake
 
 *  llnl-toss4-MI250X-rocm6-vernal.cmake
 
@@ -186,7 +242,7 @@ will print a time profile of annotated code regions in Kripke. For more informat
 
 Command Line Options
 --------------------
-Command line option help can also be viewed by running "./kripke --help"
+Command line option help can also be viewed by running `./kripke.exe --help`.
 
 ### Problem Size Options:
 
@@ -215,25 +271,34 @@ Command line option help can also be viewed by running "./kripke --help"
 
 *   **``--sigs <sigs0,sigs1,sigs2>``**
  
-    Total material cross-sections.  (Default:   --sigs 0.05,0.00005,0.05)
+    Scattering material cross-sections.  (Default:   --sigs 0.05,0.00005,0.05)
 
 
 ### On-Node Options:
 
 *   **``--arch <ARCH>``**
 
-    Architecture selection.  Selects the back-end used for computation, available are Sequential, OpenMP and CUDA. The default depends on capabilities selected by the build system and is selected from list of increasing precedence: Sequential, OpenMP and CUDA. 
+    Select the computation backend: Sequential, OpenMP, CUDA, or HIP. Only backends enabled at build time are available. The default is selected at configuration time, with increasing precedence: Sequential, OpenMP, CUDA, HIP.
 
 *   **``--layout <LAYOUT>``**
 
-    Data layout selection.  This determines the data layout and kernel implementation details (such as loop nesting order).  The layouts are determined by the order of unknowns in the angular flux: Direction, Group, and Zone.  Available layouts are DGZ, DZG, GDZ, GZD, ZDG, and ZGD.  The order is specified left-to-right in longest-to-shortest stride.  For example: DGZ means that Directions are the longest stride, and Zones are stride-1.  (Default: --nest DGZ)
+    Data layout selection.  This determines the data layout and kernel implementation details (such as loop nesting order).  The layouts are determined by the order of unknowns in the angular flux: Direction, Group, and Zone.  Available layouts are DGZ, DZG, GDZ, GZD, ZDG, and ZGD.  The order is specified left-to-right in longest-to-shortest stride.  For example: DGZ means that Directions are the longest stride, and Zones are stride-1.  (Default: --layout DGZ)
+
+
+*   **``--dev_pool_size <GB>``**
+
+    NOTE: By default, Kripke automatically calculates the Umpire pool size from each rank's problem dimensions, decomposition, material mixtures, solver, and allocation alignment.
+
+    This option allows a user defined Umpire QuickPool size, and overrides the initial automatic pool size per MPI rank calculation. The argument requires a positive integer interpreted in GiB (1 GiB = 2^30 bytes). This option is relevant to CUDA/HIP builds and works with either CHAI or explicit Umpire memory management. It sets the requested initial pool size, not a hard limit on total GPU memory. With direct Umpire plane storage enabled, I/J/K plane allocations are outside this pool.
+
+    For example, the following command requests 8GiB of pool memory for a HIP build of Kripke:
+
+    ```sh
+    ./build-hip/kripke.exe --arch HIP --dev_pool_size 8
+    ```
 
 
 ### Parallel Decomposition Options:
-
-*   **``--pdist <lout>``**
-    
-    Layout of spatial subdomains over MPI ranks. 0 for "Blocked" where local zone sets represent adjacent regions of space. 1 for "Scattered" where adjacent regions of space are distributed to adjacent MPI ranks. (Default: --layout 0)
 
 *   **``--procs <npx,npy,npz>``**
     
@@ -241,15 +306,15 @@ Command line option help can also be viewed by running "./kripke --help"
 
 *   **``--dset <ds>``**
 
-    Number of direction-sets.  Must be a factor of 8, and divide evenly the number of quadrature points. (Default:  --dset 8)
+    Number of direction-sets.  Must be a multiple of 8 and divide the number of quadrature points evenly. (Default:  --dset 8)
 
 *   **``--gset <gs>``**
     
-    Number of energy group-sets.  Must divide evenly the number energy groups. (Default:  --gset 1)
+    Number of energy group-sets.  Must divide evenly the number energy groups. (Default:  --gset 2)
 
 *   **``--zset <zx>,<zy>,<zz>``**
     
-    Number of zone-sets in x, y, and z.  (Default:  --zset 1:1:1)
+    Number of zone-sets in x, y, and z.  (Default:  --zset 1,1,1)
 
 
 ### Solver Options:
