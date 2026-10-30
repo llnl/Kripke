@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ###############################################################################
-# Copyright (c) 2014-23, Lawrence Livermore National Security, LLC
+# Copyright (c) 2014-26, Lawrence Livermore National Security, LLC
 # and Kripke project contributors. See the Kripke/COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
@@ -45,18 +45,18 @@ for i in `cat files2change`
 do
     echo $i
     cp $i $i.sed.bak
-    sed "s/Copyright (c) 2014-23/Copyright (c) 2014-25/" $i.sed.bak > $i
+    sed "s/Copyright (c) 2014-25/Copyright (c) 2014-26/" $i.sed.bak > $i
 done
 
 echo LICENSE
 cp LICENSE LICENSE.sed.bak
-sed "s/Copyright (c) 2014-2023/Copyright (c) 2014-2025/" LICENSE.sed.bak > LICENSE
+sed "s/Copyright (c) 2014-2025/Copyright (c) 2014-2026/" LICENSE.sed.bak > LICENSE
 
 for i in README.md RELEASE 
 do 
     echo $i
     cp $i $i.sed.bak
-    sed "s/2014-23/2014-25/" $i.sed.bak > $i
+    sed "s/2014-25/2014-26/" $i.sed.bak > $i
 done
 
 #=============================================================================
