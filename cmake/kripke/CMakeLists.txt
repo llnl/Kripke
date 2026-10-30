@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014-25, Lawrence Livermore National Security, LLC
+# Copyright (c) 2014-26, Lawrence Livermore National Security, LLC
 # and Kripke project contributors. See the Kripke/COPYRIGHT file for details.
 # 
 # SPDX-License-Identifier: (BSD-3-Clause)
@@ -11,7 +11,7 @@ cmake_policy(SET CMP0057 NEW)
 
 project(KRIPKE LANGUAGES CXX)
 
-set(KRIPKE_VERSION "1.2.5-dev")
+set(KRIPKE_VERSION "1.2.8")
 
 if(NOT DEFINED KRIPKE_SOURCE_ROOT)
   message(FATAL_ERROR "KRIPKE_SOURCE_ROOT is not set")
