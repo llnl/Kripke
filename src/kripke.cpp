@@ -372,7 +372,6 @@ int main(int argc, char **argv) {
   Kripke::Core::Comm::init(&argc, &argv);
 
 #ifdef KRIPKE_USE_CALIPER
-  cali_config_set("CALI_CALIPER_ATTRIBUTE_DEFAULT_SCOPE", "process");
   CALI_CXX_MARK_FUNCTION;
 #endif
 
