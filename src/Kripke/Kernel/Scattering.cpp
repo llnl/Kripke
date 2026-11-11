@@ -84,6 +84,13 @@ struct ScatteringSdom {
             GlobalGroup global_g{*g+glower_dst};
             GlobalGroup global_gp{*gp+glower_src};
 
+            // Skip group/Legendre pairs that are zero for every material.
+            if (sigs(Material{0}, n, global_g, global_gp) == 0.0 &&
+                sigs(Material{1}, n, global_g, global_gp) == 0.0 &&
+                sigs(Material{2}, n, global_g, global_gp) == 0.0) {
+              return;
+            }
+
             MixElem mix_start = zone_to_mixelem(z);
             MixElem mix_stop = mix_start + zone_to_num_mixelem(z);
 
